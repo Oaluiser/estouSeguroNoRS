@@ -1,66 +1,52 @@
+"use client"
 import usePlacesAutocomplete, {
   getGeocode,
   getLatLng,
-} from "use-places-autocomplete";
-import { GoogleMap, LoadScript } from "@react-google-maps/api";
-import { useState, useEffect } from "react";
-import csv from 'csv-parser';
-import fs from 'fs';
+} from "use-places-autocomplete"
+import { GoogleMap, LoadScript, Libraries } from "@react-google-maps/api"
+import { useState, useEffect, ChangeEvent } from "react"
 
-const mapStyles = { height: "60vh", width: "100%" };
-const defaultCenter = { lat: -31.7654, lng: -52.3376 };
-const libraries = ["places"];
+const mapStyles = { height: "60vh", width: "100%" }
+const defaultCenter = { lat: -31.7654, lng: -52.3376 }
+const libraries = ["places"]
 
-function parsePolygonWKT(wkt) {
+function parsePolygonWKT(wkt: string) {
   const coordinateStrings = wkt
     .replace("POLYGON ((", "")
     .replace("))", "")
-    .split(", ");
+    .split(", ")
 
-  return coordinateStrings.map(coordStr => {
-    const [lng, lat] = coordStr.split(" ").map(Number);
-    return { lat, lng };
-  });
+  return coordinateStrings.map((coordStr) => {
+    const [lng, lat] = coordStr.split(" ").map(Number)
+    return { lat, lng }
+  })
 }
 
-const Home = () => {
-  const [address, setAddress] = useState("");
-  const [polygons, setPolygons] = useState([]);
-  const handleAddressChange = (event) => {
-    setAddress(event.target.value);
-  };
-  const currentDate = new Date();
+const Home: React.FC = () => {
+  const [address, setAddress] = useState<string>("")
+  const [polygons, setPolygons] = useState<Array<any>>([])
+  const handleAddressChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setAddress(event.target.value)
+  }
+  const currentDate = new Date()
   const {
     ready,
     value,
     suggestions: { status, data },
     setValue,
     clearSuggestions,
-  } = usePlacesAutocomplete();
-  const handleSelect = async (description) => {
-    setValue(description, false);
-    clearSuggestions();
+  } = usePlacesAutocomplete()
+  const handleSelect = async (description: string) => {
+    setValue(description, false)
+    clearSuggestions()
     try {
-      const results = await getGeocode({ address: description });
-      const { lat, lng } = await getLatLng(results[0]);
-      console.log(lat, lng);
+      const results = await getGeocode({ address: description })
+      const { lat, lng } = await getLatLng(results[0])
+      console.log(lat, lng)
     } catch (error) {
-      console.log("Error: ", error);
+      console.log("Error: ", error)
     }
-  };
-
-  useEffect(() => {
-    const polygons = [];
-    fs.createReadStream('poligon.csv')
-      .pipe(csv())
-      .on('data', (row) => {
-        const polygon = parsePolygonWKT(row.WKT);
-        polygons.push(polygon);
-      })
-      .on('end', () => {
-        setPolygons(polygons);
-      });
-  }, []);
+  }
 
   return (
     <main className="flex flex-col justify-between h-screen bg-gray-200 text-black">
@@ -97,8 +83,7 @@ const Home = () => {
             mapContainerStyle={mapStyles}
             zoom={13}
             center={defaultCenter}
-          >
-          </GoogleMap>
+          ></GoogleMap>
         </LoadScript>
       </div>
       <footer className="text-left m-5">
